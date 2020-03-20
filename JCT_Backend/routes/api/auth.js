@@ -1,23 +1,30 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../../middleware/auth.js');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 
-const User = require('../../models/User');
+const User = require('../../models/User')
 
-router.get('/', (req, res) => res.send("User Route"));
+router.get('/', auth, async (req, res) => {
+  try{
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch(err){
+    console.log(err.message);
+    res.status(500).send("Server error");
+  }
+});
 
 router.post('/',
 // Error handeling done for now, will take out when front end takes over
-[check('name', "Name is required")
-.not()
-.isEmpty(),
+[
 check('email', "Please include a valid email")
 .isEmail(),
-check('password', "Please enter a password with 8 or more characters")
-.isLength({ min: 8 })
+check('password', "Password is required")
+.exists()
 ],
 async (req, res) => {
   const errors = validationResult(req);
@@ -25,31 +32,21 @@ async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, email, password } = req.body;
+  const { email, password } = req.body;
 
   try{
       // Check if Email has been taken
     let user = await User.findOne(({ email }))
 
-    if (user){
-      return res.status(400).json({ errors: [{ msg: "Email has been taken"}]});
+    if (!user){
+      return res.status(400).json({ errors: [{ msg: "Email or password is incorrect"}]});
     }
 
-    // Begin user registration
-    user = new User({
-      name,
-      email,
-      password,
-    });
+    const isMatch = await bcrypt.compare(password, user.password)
 
-    // Password encryption
-
-    const salt = await bcrypt.genSalt(10);
-
-    user.password = await bcrypt.hash(password, salt);
-
-    await user.save();
-
+    if(!isMatch){
+      return res.status(400).json({ errors: [{ msg: "Email or password is incorrect"}]});
+    }
     //json webtoken
 
     const payload = {
@@ -65,7 +62,6 @@ async (req, res) => {
         if(err) throw err;
         res.json({ token });
       });
-
   } catch(err){
     console.error(err.message);
     res.status(500).send("Server error");
