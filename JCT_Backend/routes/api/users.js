@@ -7,17 +7,12 @@ const config = require('config');
 
 const User = require('../../models/User');
 
-router.get('/', (req, res) => res.send("User Route"));
 
 router.post('/',
 // Error handeling done for now, will take out when front end takes over
-[check('name', "Name is required")
-.not()
-.isEmpty(),
-check('email', "Please include a valid email")
-.isEmail(),
-check('password', "Please enter a password with 8 or more characters")
-.isLength({ min: 8 })
+[check('name', "Name is required").not().isEmpty(),
+check('email', "Please include a valid email").isEmail(),
+check('password', "Please enter a password with 8 or more characters").isLength({ min: 8 })
 ],
 async (req, res) => {
   const errors = validationResult(req);
@@ -59,7 +54,7 @@ async (req, res) => {
     }
 
     jwt.sign
-      (payload,config.get('jwtSecret'),
+      (payload, config.get('jwtSecret'),
       // { expires in: 3600 },
       (err, token) => {
         if(err) throw err;
