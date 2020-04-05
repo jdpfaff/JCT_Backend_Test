@@ -20,25 +20,41 @@ router.post('/',
     if(!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
+    var start = new Date(req.body.start);
+    var time = req.body.time;
+    var end = new Date(start.getTime() + (time * 1000));
+    var startBuffer = new Date();
+    startBuffer.setTime(start.getTime() - (15*60000));
+    var endBuffer = new Date();
+    endBuffer.setTime(end.getTime() + (15*60000));
+
     try {
+      let schedule = await Schedule.findOne({
+        $or: [
+          {start: {$gte: startBuffer, $lte: endBuffer}},
+          {end: {$gte: startBuffer, $lte: endBuffer}}
+        ]
+        }
+    )
+      if(schedule)
+      {
+        return res.status(400).json({ errors: [{ msg: "Date has already been claimed"}]});
+      }
+
       const user = await User.findById(req.user.id).select('-password');
-
-      var start = new Date(req.body.start);
-      var end = new Date();
-
-      const newSchedule = new Schedule({
-        user: req.user.id,
+      schedule = new Schedule({
         email: user.email,
         composer: user.name,
-        time: req.body.time,
+        time: time,
         start: start,
         members: req.body.members,
-        end: end  .setTime(start.getTime() + (req.body.time * 1000)),
+        end: end,
         title: req.body.title,
         pin: req.body.pin,
       });
 
-      const schedule = await newSchedule.save();
+      schedule.save();
       res.json(schedule);
     } catch (err) {
       console.error(err.message);

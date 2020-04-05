@@ -19,7 +19,6 @@ router.get('/', auth, async (req, res) => {
 });
 
 router.post('/',
-// Error handeling done for now, will take out when front end takes over
 [
 check('email', "Please include a valid email")
 .isEmail(),
