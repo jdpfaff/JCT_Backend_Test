@@ -12,7 +12,7 @@ app.get('/', (req, res) => res.send('API running'));
 // The routes that will be used
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/auth', require('./routes/api/auth'));
-app.use('/api/schedules', require('./routes/api/schedules'));
+app.use('/api/appointments', require('./routes/api/appointments'));
 // app.use('/api/recordings', require('./routes/api/recordings'));
 
 const port = process.env.PORT || 5000;

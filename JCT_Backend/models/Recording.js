@@ -2,15 +2,23 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const RecordingSchema = new mongoose.Schema({
-  schedule: {
+  appointment: {
     type: Schema.Types.ObjectID,
-    ref: 'schedules'
+    ref: 'appointment'
+  },
+  id:{
+    type: String
   },
   private: {
         type: Boolean,
         default: false,
   },
-  
+  name: {
+    type: String
+  },
+  composer: {
+    type: String
+  },
 
 
 });
