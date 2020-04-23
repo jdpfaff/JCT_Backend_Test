@@ -54,8 +54,7 @@ router.post('/',
         title: req.body.title,
         pin: req.body.pin,
       });
-
-      appointment.save({"expireAt": end});
+      await appointment.insert({"expireAt": endBuffer});
       res.json(appointment);
     } catch (err) {
         console.error(err.message);
@@ -143,7 +142,6 @@ async(req, res) => {
     res.status(500).send("Server error");
   }
 });
-
 
 // This is for testing on the backend
 

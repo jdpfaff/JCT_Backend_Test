@@ -6,21 +6,40 @@ const RecordingSchema = new mongoose.Schema({
     type: Schema.Types.ObjectID,
     ref: 'appointment'
   },
-  id:{
-    type: String
+  user: {
+    type:String
   },
-  private: {
-        type: Boolean,
-        default: false,
-  },
-  name: {
-    type: String
+  date: {
+    type: Date
   },
   composer: {
     type: String
   },
-
-
+  title: {
+    type: String
+  },
+  time: {
+    type: Number
+  },
+  id: {
+    type: String
+  },
+  length: {
+    type: Number
+  },
+  filename: {
+    type: String,
+  },
+  type: {
+    type: String
+  },
+  private: {
+    type: Boolean,
+    default: false
+  },
+  description: {
+    type: String
+  }
 });
 
 module.exports = Recording = mongoose.model('schedule', RecordingSchema);
