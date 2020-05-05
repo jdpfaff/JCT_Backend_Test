@@ -77,6 +77,8 @@ router.get('/Appts', auth, async(req,res) => {
 
 // Composer delets their own appointments
 
+// [
+
 router.delete('/:id', auth, async(req, res) => {
   try{
     const appointment = await Appointment.findById(req.params.id);
