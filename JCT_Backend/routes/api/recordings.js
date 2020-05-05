@@ -19,15 +19,15 @@ conn.once('open', () => {
       check('file', 'file is required').not().isEmpty(),
       check('appointment', 'appointment is required').not().isEmpty()
     ], async(req, res) => {
+    const errors = validationResult(req);
+      if(!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
     try{
-
-
       const appointment = await Appointment.findById(req.appointment.id);
-
       let {
         file
         } = req.file;
-
       let writeStream = gfs.createWriteStream({
         filename: appointment.title + '-' + appointment.name,
         mode: 'w',
@@ -45,13 +45,15 @@ conn.once('open', () => {
           id: file._id,
           length: file.length,
           filename: file.filename,
-          type: 'mp3'
+          type: file.content_type
         });
 
         recording.insert();
         res.json(recording);
       });
 
+    writeStream.write(file.data);
+    writeStream.end();
     }
     catch(err){
       console.error(err.message);
@@ -62,7 +64,23 @@ conn.once('open', () => {
 
 // Change the recording information
 /*
-router.put('/:id', auth, async(req,res) =>  {}
+router.put('/:id', auth, async(req,res) =>  {
+  try{
+  const recording = await Recording.findById(req.params.id);
+  if(!appointment)
+  {
+    return res.status(404).json({ msg: "recording not found"})
+  }
+
+  if(appointment.user.toString() != req.user.id) {
+    return res.status(401).json({ msg: 'User not autherized'});
+  }
+  
+  catch(err){
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+}
 
 });
 
