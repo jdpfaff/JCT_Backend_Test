@@ -42,4 +42,4 @@ const RecordingSchema = new mongoose.Schema({
   }
 });
 
-module.exports = Recording = mongoose.model('schedule', RecordingSchema);
+module.exports = Recording = mongoose.model('recordings', RecordingSchema);

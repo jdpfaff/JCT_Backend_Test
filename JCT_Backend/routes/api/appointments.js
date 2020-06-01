@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const auth = require('../../middleware/auth.js');
+
 const Appointment = require('../../models/Appointment');
 const User = require('../../models/User');
 
-// Web App routes
 
 // Composer posts initial appointment
 
@@ -19,6 +19,7 @@ router.post('/',
     check('time', 'please add in the length you want to record').isInt({gt: 120, lt: 600})
   ]
 ], async(req, res) => {
+
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -32,10 +33,10 @@ router.post('/',
     var endBuffer = new Date();
     endBuffer.setTime(end.getTime() + (15*60000));
 
+    // Ensure start time doesn't interfere with any other appointment
     try {
       let appointment = await Appointment.findOne({
-          start: {$gte: startBuffer, $lte: endBuffer
-        }
+          start: {$gte: startBuffer, $lte: endBuffer}
       })
 
       if(appointment)
@@ -54,7 +55,8 @@ router.post('/',
         title: req.body.title,
         pin: req.body.pin,
       });
-      await appointment.insert({"expireAt": endBuffer});
+
+      await appointment.save();
       res.json(appointment);
     } catch (err) {
         console.error(err.message);
@@ -77,7 +79,7 @@ router.get('/Appts', auth, async(req,res) => {
 
 // Composer delets their own appointments
 
-// [
+// ]
 
 router.delete('/:id', auth, async(req, res) => {
   try{
@@ -116,6 +118,8 @@ router.get('/', async(req,res) => {
 router.post('/mobile/:id',
 check('pin', 'a PIN of 6 digits is required').isLength({min: 6, max: 6}),
 async(req, res) => {
+
+// Ensure that a pin is actually entered
 
   const errors = validationResult(req);
   if(!errors.isEmpty()) {
