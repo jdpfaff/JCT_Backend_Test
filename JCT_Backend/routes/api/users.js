@@ -15,6 +15,7 @@ check('password', "Please enter a password with 8 or more characters").isLength(
 ],
 async (req, res) => {
   const errors = validationResult(req);
+  // Checks to make sure all fields have been entered
   if(!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }

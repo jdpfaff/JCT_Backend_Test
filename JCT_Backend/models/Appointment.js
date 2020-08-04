@@ -34,7 +34,7 @@ const AppointmentSchema = new Schema({
   end: {
     type: Date
   },
-
+  
   members: {
     type: Number,
     required: true

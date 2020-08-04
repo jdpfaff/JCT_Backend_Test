@@ -6,7 +6,6 @@ const auth = require('../../middleware/auth.js');
 const Appointment = require('../../models/Appointment');
 const User = require('../../models/User');
 
-
 // Composer posts initial appointment
 
 router.post('/',
@@ -19,7 +18,7 @@ router.post('/',
     check('time', 'please add in the length you want to record').isInt({gt: 120, lt: 600})
   ]
 ], async(req, res) => {
-
+    // Checks to make sure all fields have been entered
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -41,7 +40,7 @@ router.post('/',
 
       if(appointment)
       {
-        return res.status(400).json({ errors: [{ msg: "Date has already been claimed"}]});
+        return res.status(400).json({ errors: [{ msg: "Date has already been claimed "}]});
       }
 
       const user = await User.findById(req.user.id).select('-password');
@@ -56,7 +55,9 @@ router.post('/',
         pin: req.body.pin,
       });
 
-      await appointment.save();
+      await appointment.save({
+        "expireAt" : endBuffer
+      });
       res.json(appointment);
     } catch (err) {
         console.error(err.message);
@@ -88,6 +89,7 @@ router.delete('/:id', auth, async(req, res) => {
     {
       return res.status(404).json({ msg: "appointment not found"})
     }
+
     if(appointment.user.toString() != req.user.id) {
       return res.status(401).json({ msg: 'User not autherized'});
     }

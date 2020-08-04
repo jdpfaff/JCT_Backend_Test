@@ -1,3 +1,5 @@
+// This file exists to uncomplicate things
+
 const mongoose = require('mongoose');
 const multer = require('multer');
 const config = require('config');
@@ -10,6 +12,7 @@ const GridFsStorage = require('multer-gridfs-storage');
 const Recording = require('../../models/Recording');
 const Appointment = require('../../models/Appointment');
 
+
 const conn = mongoose.connection;
 
 // Uploading the MP3 File
@@ -19,8 +22,9 @@ module.exports = router => {
 
   conn.once('open', () => {
     // Init stream
-    gfs = Grid(conn.db, mongoose.mongo);
-    gfs.collection('uploads');
+    gfs = new mongoose.mongo.GridFSBucket(conn.db, {
+      bucketName: 'uploads'
+    });
   });
 
   const storage = new GridFsStorage({
@@ -31,7 +35,9 @@ module.exports = router => {
           if (err) {
             return reject(err);
           }
+          // Randomize the filename
           const filename = buf.toString('hex') + path.extname(file.originalname);
+          // Add file to the bucket
           const fileInfo = {
             filename: filename,
             bucketName: 'uploads'
@@ -43,17 +49,20 @@ module.exports = router => {
   });
 
   const upload = multer({ storage });
+
   router.post('/', upload.single('file'), async(req, res) => {
     try{
       const appointment = await Appointment.findById(req.body.appointment);
       const file = req.file;
+      console.log(file._id);
+
       recording = new Recording({
         user: appointment.user,
-        date: appointment.start,
+        date: appointment.end,
         composer: appointment.composer,
-        title: appointment.title,
+        //title: appointment.title,
         time: appointment.time,
-        id: file._id,
+        Rid: file._id,
         length: file.size,
         filename: file.filename,
         type: file.contentType
@@ -68,17 +77,20 @@ module.exports = router => {
     }
   });
 
-  router.get('/:filename', (req, res) => {
-    gfs.files.findOne({ filename: req.params.filename }, (err, file) => {
-      // Check if file
-      if (!file || file.length === 0) {
-        console.log(!file);
-        return res.status(404).json({
-          err: 'No file exists'
-        });
-      }
-        const readstream = gfs.createReadStream(file.filename);
-        readstream.pipe(res);
+  // View recordings from database
+
+  router.get('/view/:filename', (req, res) => {
+    const file = gfs
+      .find({
+        filename: req.params.filename
+      })
+      .toArray((err, files) => {
+        if (!files || files.length === 0) {
+          return res.status(404).json({
+            err: "no files exist"
+          });
+        }
+        gfs.openDownloadStreamByName(req.params.filename).pipe(res);
     });
   });
 }

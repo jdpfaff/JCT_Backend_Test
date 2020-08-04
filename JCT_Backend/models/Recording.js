@@ -1,3 +1,5 @@
+// Not gonna lie, approximatley 83.275% of my code was copied and pasted
+
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -19,9 +21,10 @@ const RecordingSchema = new mongoose.Schema({
     type: String
   },
   time: {
-    type: Number
+    type: Number,
+    default: "Untitled"
   },
-  id: {
+  Rid: {
     type: String
   },
   length: {
@@ -38,8 +41,25 @@ const RecordingSchema = new mongoose.Schema({
     default: false
   },
   description: {
-    type: String
-  }
+    type: String,
+    default: "No descritption has been added"
+  },
+  tags: [
+    {
+      tag1:
+        {
+          type: String
+        },
+      tag2:
+        {
+          type: String
+        },
+      tag3:
+        {
+          type: String
+        }
+    }
+  ]
 });
 
 module.exports = Recording = mongoose.model('recordings', RecordingSchema);

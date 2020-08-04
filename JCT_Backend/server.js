@@ -10,7 +10,7 @@ connectDB();
 
 app.use(express.json({ extended: false }));
 
-app.get('/', (req, res) => res.send('API running'));
+app.get('/', (req, res) => { res.send('API running')});
 
 // The routes that will be used
 app.use('/api/users', require('./routes/api/users'));

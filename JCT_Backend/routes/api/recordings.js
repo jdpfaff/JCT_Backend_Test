@@ -6,39 +6,119 @@ const auth = require('../../middleware/auth.js');
 
 const Recording = require('../../models/Recording');
 const User = require('../../models/User');
-const Appointment = require('../../models/Appointment');
 
-require('./upload')(router);
-//require('./download.js')(router);
+// GRIDfs requirements in another file in order to keep everything clean
 
-// Change the recording information
-/*
-router.put('/:id', auth, async(req,res) =>  {
+require('./upload+download')(router);
+
+//Change the recording information
+
+router.put('/edit/:id', auth, async(req,res) =>  {
   try{
   const recording = await Recording.findById(req.params.id);
-  if(!appointment)
-  {
-    return res.status(404).json({ msg: "recording not found"})
-  }
-  if(appointment.user.toString() != req.user.id) {
+  if(!recording)
+    return res.status(404).json({ msg: "recording not found"});
+  if(recording.user.toString() != req.user.id)
     return res.status(401).json({ msg: 'User not autherized'});
+  recording.title = req.body.title;
+  recording.private = req.body.private;
+  recording.description = req.body.description;
+  recording.tags =
+  {
+    tag1: req.body.tag1,
+    tag2: req.body.tag2,
+    tag3: req.body.tag3
+  };
+
+  await recording.save;
+  res.json(recording);
+  }catch(err){
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+// Obtaining the list of archieved MP3's
+
+router.get('/', async (req, res) => {
+  try{
+    recordings = await Recording.find({private: false}).sort({start: -1});
+    res.json(recordings);
+  }
+  catch(err){
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+// Filter by title
+
+router.get('/title', async (req, res) => {
+  try{
+    recordings = await Recording.find({private: false, title: req.body.title}).sort({start: -1});
+    if(!recordings)
+      res.json("No title matches what you have searched.");
+    res.json(recordings);
+  }
+  catch(err){
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+// Filter by Tags
+
+
+router.get('/tags', async (req, res) => {
+  try{
+    recordings = await Recording.find({private: false, tag: req.body.tag}).sort({start: -1});
+    if(!recordings)
+      res.json("The tag(s) that you entered match none of the recordings")
+    res.json(recordings);
+  }
+  catch(err){
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+
+//view a specific recordings information
+
+router.get('/:id', async (req, res) => {
+  try{
+    const recordings = await Recording.find({id: req.params.id, private: false}).sort({start: -1});
+    if(!recording)
+      return res.status(404).json({ msg: "recording not found"});
+    res.json(recordings);
   }
 
   catch(err){
     console.error(err.message);
     res.status(500).send("Server error");
   }
-}
 });
 
-*/
+// Obtain a list of a users Recordings
 
-// Obtaining the list of archieved MP3's
-// This just contains the list of them, so no need to do anything else yet.
-
-router.get('/', async (req, res) => {
+router.get('/user/:id', async (req, res) => {
   try{
-    const recordings = await Recording.find({private: false}).sort({start: -1});
+    const recording = await Recording.find({user: req.params.id, private: false}).sort({start: -1});
+    res.json(recording);
+  }
+
+  catch(err){
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+//Obtain a list of your own recordings
+
+router.get('/userRecordings', auth, async (req, res) => {
+  try{
+    const compare = await User.findById(req.user.id).select('-password');
+    const recordings = await Recording.find({user: compare.id}).sort({start: -1});
     res.json(recordings);
   }
 
